@@ -99,6 +99,5 @@ def main():
     prediction = knn_algo.predict(example_input)  # Pass as DataFrame, conversion happens in predict()
     print("\nPredicted class for the example input:", prediction)
 
-
 if __name__ == "__main__":
     main()
