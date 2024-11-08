@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+import matplotlib.pyplot as plt
 from Action_Classifier import Action_Classifier
 
 
@@ -16,47 +17,52 @@ class NaiveBayes(Action_Classifier):
 
     def train_model(self):
         """
-        Train the Naive Bayes model.
+        Train the Naive Bayes model and display performance metrics.
         """
         try:
-            # Split the data into training and testing sets
+           
             self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
                 self.X, self.y, test_size=0.2, random_state=42
             )
 
-            # Initialize the Gaussian Naive Bayes model
             self.best_model = GaussianNB()
-
-            # Train the model
             self.best_model.fit(self.X_train, self.y_train)
 
             # Make predictions on the test set
             self.y_pred = self.best_model.predict(self.X_test)
 
+            # Calculate and print the accuracy
+            accuracy = accuracy_score(self.y_test, self.y_pred)
+            print(f"\nModel Accuracy on Test Data: {accuracy:.2f}")
+
             # Print evaluation metrics
             print("\nClassification Report on Test Data:")
             print(classification_report(self.y_test, self.y_pred))
+
+            # Print and visualize the confusion matrix
+            cm = confusion_matrix(self.y_test, self.y_pred)
             print("\nConfusion Matrix:")
-            print(confusion_matrix(self.y_test, self.y_pred))
+            print(cm)
+
+            plt.figure(figsize=(8, 6))
+            plt.imshow(cm, interpolation='nearest', cmap='Blues')
+            plt.colorbar()
+            plt.title('Confusion Matrix')
+            plt.xlabel('Predicted Label')
+            plt.ylabel('True Label')
+            plt.xticks(np.arange(len(np.unique(self.y))), np.unique(self.y), rotation=45)
+            plt.yticks(np.arange(len(np.unique(self.y))), np.unique(self.y))
+
+            
+            for i in range(len(cm)):
+                for j in range(len(cm[i])):
+                    plt.text(j, i, format(cm[i, j], 'd'), ha='center', va='center', color='black')
+
+            plt.tight_layout()
+            plt.show()
+
         except Exception as e:
             print("Error during model training:", e)
-
-    def save_test_set_with_predictions(self, filename="test_set_with_predictions.csv"):
-        """
-        Saves the test set (X_test, y_test) along with predictions to a CSV file.
-        """
-        try:
-            if self.y_pred is None:
-                raise ValueError("No predictions available. Please train the model and generate predictions before saving.")
-
-            # Create a DataFrame for X_test with feature column names
-            test_data = pd.DataFrame(self.X_test, columns=self.feature_columns)
-            test_data[self.target_column] = self.y_test  # Add true labels
-            test_data['predictions'] = self.y_pred       # Add predictions from the model
-            test_data.to_csv(filename, index=False)
-            print(f"Test set with predictions saved to {filename}")
-        except Exception as e:
-            print(f"Error saving test set with predictions: {e}")
 
     def predict(self, new_data):
         """
@@ -73,30 +79,16 @@ class NaiveBayes(Action_Classifier):
             return None
 
 if __name__ == "__main__":
-    # Specify the file path and columns
-    file_path = 'filtered_output.csv'  # Replace with your file path
-    feature_columns = ['queue1', 'queue2']  # Adjust columns based on your dataset
-    target_column = 'action'  # Specify your target column
+    file_path = '../Files/filtered_output.csv'  # location of the input file
+    feature_columns = ['queue1', 'queue2']  # feature columns
+    target_column = 'action'  # target column
 
-    # Instantiate the NaiveBayes class
-    nb_classifier = NaiveBayes(filepath=file_path, feature_columns=feature_columns, target_column=target_column)
+    nb_classifier = NaiveBayes(filepath=file_path, feature_columns=feature_columns, target_column=target_column)            # Instantiate the NaiveBayes class
 
-    # Load the data
-    nb_classifier.load_data_as_pd_dataframe()
+    nb_classifier.load_data_as_pd_dataframe()       # Load the data
 
-    # Preprocess the data and split into training and testing sets
-    nb_classifier.pre_process_data()
+    nb_classifier.pre_process_data()            # Preprocess the data and split into training and testing sets
 
-    # Run the parameter selection method (not needed for Naive Bayes, but for consistency)
-    nb_classifier.select_best_parameters()
+    nb_classifier.train_model()  # Train the model and display metrics
 
-    # Train the model
-    nb_classifier.train_model()
-
-    # Save the test set with predictions
-    nb_classifier.save_test_set_with_predictions(filename="test_set_with_predictions.csv")
-
-    # Example prediction
-    new_data = np.array([[15, 30], [5, 40], [35, 20]])  # Replace with your actual test data
-    predictions = nb_classifier.predict(new_data)
-    print("Predictions for new data:", predictions)
+    

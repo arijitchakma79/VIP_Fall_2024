@@ -42,7 +42,7 @@ class Action_Classifier(ABC):
         Preprocess the data by handling missing values and extracting features and target.
         """
         try:
-            X = self.data[self.feature_columns].copy()  # Avoid SettingWithCopyWarning
+            X = self.data[self.feature_columns].copy()  
             y = self.data[self.target_column]
 
             # Fill missing values in numerical columns with the mean

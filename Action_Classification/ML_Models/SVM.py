@@ -13,13 +13,11 @@ class SVM(Action_Classifier):
         try:
             X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42)
 
-            # Store the train and test data
             self.X_train = X_train
             self.X_test = X_test
             self.y_train = y_train
             self.y_test = y_test
 
-            # Define the parameter grid
             param_grid = {
                 'C': [0.1, 1, 10],
                 'kernel': [ 'poly', 'rbf'],
@@ -46,7 +44,6 @@ class SVM(Action_Classifier):
             if not self.best_model:
                 raise ValueError("No best model found. Run select_best_parameters() first.")
             
-            # Fit the best model to the training data
             self.best_model.fit(self.X_train, self.y_train)
             
             # Make predictions on the test set
@@ -76,18 +73,14 @@ class SVM(Action_Classifier):
             return None
 
 if __name__ == "__main__":
-    # Specify the file path and columns
-    file_path = '../Files/filtered_output.csv'
-    feature_columns = ['queue1', 'queue2']
-    target_column = 'action'
+    file_path = '../Files/filtered_output.csv' #File output
+    feature_columns = ['queue1', 'queue2']  # feature columns 
+    target_column = 'action'     # target columns
 
-    # Instantiate the SVM class
     svm_classifier = SVM(filepath=file_path, feature_columns=feature_columns, target_column=target_column)
 
-    # Load the data
     svm_classifier.load_data_as_pd_dataframe()
 
-    # Preprocess the data
     svm_classifier.pre_process_data()
 
     # Select the best hyperparameters
@@ -95,8 +88,3 @@ if __name__ == "__main__":
 
     # Train the model
     svm_classifier.train_model()
-
-    # Example prediction
-    new_data = np.array([[15, 30], [5, 40], [35, 20]])
-    predictions = svm_classifier.predict(new_data)
-    print("Predictions for new data:", predictions)

@@ -15,7 +15,6 @@ class KNN(Action_Classifier):
         try:
             X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42)
 
-            # Store the train and test data
             self.y_train = y_train
             self.y_test = y_test
 
@@ -28,7 +27,7 @@ class KNN(Action_Classifier):
             self.train_scores = []
             self.test_scores = []
 
-            # Search for the best K value
+            # Searching best K value
             k_range = range(1, 25)
             for k in k_range:
                 knn = KNeighborsClassifier(n_neighbors=k)
@@ -68,9 +67,9 @@ class KNN(Action_Classifier):
 
 
 def main():
-    file_path = '../Files/filtered_output.csv'  
-    feature_columns = ['queue1', 'queue2']  
-    target_column = 'action'  
+    file_path = '../Files/filtered_output.csv'   # file location
+    feature_columns = ['queue1', 'queue2']  #feature columns
+    target_column = 'action'  #target columns
 
     # Instantiate the KNN class
     knn_algo = KNN(filepath=file_path, feature_columns=feature_columns, target_column=target_column)
@@ -92,12 +91,6 @@ def main():
 
     # Plot the confusion matrix to evaluate the model's performance
     knn_algo.plot_confusion_matrix()
-
-    
-    
-    example_input = pd.DataFrame([[10, 20]], columns=feature_columns)  # Example input for prediction
-    prediction = knn_algo.predict(example_input)  # Pass as DataFrame, conversion happens in predict()
-    print("\nPredicted class for the example input:", prediction)
 
 if __name__ == "__main__":
     main()

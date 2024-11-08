@@ -12,19 +12,15 @@ class XGBoostClassifier(Action_Classifier):
         Preprocess the data by handling missing values and extracting features and target.
         """
         try:
-            # Extract features and target
-            X = self.data[self.feature_columns].copy()  # Avoid SettingWithCopyWarning
+            X = self.data[self.feature_columns].copy()  
             y = self.data[self.target_column]
 
-            # Map target labels to consecutive integers starting from 0
             unique_classes = sorted(np.unique(y))
             class_mapping = {label: index for index, label in enumerate(unique_classes)}
             y_mapped = y.map(class_mapping)
 
-            # Print class mapping for reference
             print("Class mapping:", class_mapping)
 
-            # Assign preprocessed data to class attributes
             self.X = X.values
             self.y = y_mapped.values
             self.classes = list(class_mapping.values())
@@ -37,12 +33,10 @@ class XGBoostClassifier(Action_Classifier):
         Use GridSearchCV to find the best hyperparameters for the XGBoost model.
         """
         try:
-            # Split the data into training and testing sets
             self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
                 self.X, self.y, test_size=0.2, random_state=42
             )
 
-            # Define the parameter grid for XGBoost
             param_grid = {
                 'learning_rate': [0.01, 0.1, 0.2],
                 'max_depth': [3, 5, 7],
@@ -51,11 +45,9 @@ class XGBoostClassifier(Action_Classifier):
                 'colsample_bytree': [0.8, 1.0]
             }
 
-            # Perform grid search with cross-validation
             grid_search = GridSearchCV(XGBClassifier(use_label_encoder=False, eval_metric='mlogloss'), param_grid, cv=5, scoring='accuracy')
             grid_search.fit(self.X_train, self.y_train)
 
-            # Store the best model and parameters
             self.best_model = grid_search.best_estimator_
             self.best_params = grid_search.best_params_
             print(f"Best parameters found: {self.best_params}")
@@ -70,10 +62,8 @@ class XGBoostClassifier(Action_Classifier):
             if not self.best_model:
                 raise ValueError("No best model found. Run select_best_parameters() first.")
             
-            # Fit the best model to the training data
             self.best_model.fit(self.X_train, self.y_train)
 
-            # Make predictions on the test set
             self.y_pred = self.best_model.predict(self.X_test)
 
             # Print evaluation metrics
@@ -127,28 +117,18 @@ Predictions for new data: [1 0 1]"""
 
 
 if __name__ == "__main__":
-    # Specify the file path and columns
-    file_path = 'filtered_output.csv'  # Replace with your file path
-    feature_columns = ['queue1', 'queue2']  # Adjust columns based on your dataset
-    target_column = 'action'  # Specify your target column
+    file_path = 'filtered_output.csv'  
+    feature_columns = ['queue1', 'queue2']  
+    target_column = 'action' 
 
-    # Instantiate the XGBoostClassifier class
     xgb_classifier = XGBoostClassifier(filepath=file_path, feature_columns=feature_columns, target_column=target_column)
 
-    # Load the data
     xgb_classifier.load_data_as_pd_dataframe()
 
-    # Preprocess the data and split into training and testing sets
     xgb_classifier.pre_process_data()
 
-    # Select the best hyperparameters
     xgb_classifier.select_best_parameters()
 
-    # Train the model
     xgb_classifier.train_model()
 
-  
-    # Example prediction
-    new_data = np.array([[15, 30], [5, 40], [35, 20]])  # Replace with your actual test data
-    predictions = xgb_classifier.predict(new_data)
-    print("Predictions for new data:", predictions)
+

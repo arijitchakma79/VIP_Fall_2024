@@ -17,7 +17,6 @@ class RandomForest(Action_Classifier):
                 self.X, self.y, test_size=0.2, random_state=42
             )
 
-            # Define the parameter grid
             param_grid = {
                 'n_estimators': [100, 200, 300, 400,500, 600, 700, 800],
                 'max_depth': [None, 10, 20],
@@ -26,7 +25,7 @@ class RandomForest(Action_Classifier):
                 'bootstrap': [True, False]
             }
 
-            # Perform grid search with cross-validation
+    
             grid_search = GridSearchCV(RandomForestClassifier(), param_grid, cv=5, scoring='accuracy')
             grid_search.fit(self.X_train, self.y_train)
 
@@ -45,10 +44,8 @@ class RandomForest(Action_Classifier):
             if not self.best_model:
                 raise ValueError("No best model found. Run select_best_parameters() first.")
             
-            # Fit the best model to the training data
             self.best_model.fit(self.X_train, self.y_train)
             
-            # Make predictions on the test set
             self.y_pred = self.best_model.predict(self.X_test)
 
             # Print evaluation metrics
@@ -105,3 +102,20 @@ Predictions for new data: [2 1 2]
 /usr/local/lib/python3.10/dist-packages/sklearn/base.py:493: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
   warnings.warn(
   """
+
+if __name__ == "__main__":
+    file_path = '../Files/filtered_output.csv'  # file location
+    feature_columns = ['queue1', 'queue2']  # feature columns
+    target_column = 'action'  # target column
+
+    rf_classifier = RandomForest(filepath=file_path, feature_columns=feature_columns, target_column=target_column)
+
+    rf_classifier.load_data_as_pd_dataframe()
+
+    rf_classifier.pre_process_data()
+
+    rf_classifier.select_best_parameters()
+
+    rf_classifier.train_model()
+
+
