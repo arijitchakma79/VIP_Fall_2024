@@ -1,0 +1,60 @@
+Logistic Regression Classification Results
+==================================================
+
+Dataset Sizes:
+Training set: 269 samples
+Validation set: 90 samples
+Test set: 90 samples
+
+Grid Search Parameters:
+C: [0.001, 0.01, 0.1, 1, 10, 100]
+penalty: ['l1', 'l2']
+solver: ['liblinear', 'saga']
+max_iter: [1000]
+multi_class: ['ovr', 'auto']
+
+Best Model Results:
+Best parameters: {'C': 10, 'max_iter': 1000, 'multi_class': 'auto', 'penalty': 'l1', 'solver': 'saga'}
+Best cross-validation score: 0.465
+
+Validation Set Performance:
+              precision    recall  f1-score   support
+
+           1       0.88      0.88      0.88        16
+           2       0.66      0.79      0.72        34
+           4       0.39      0.33      0.36        21
+           5       0.43      0.30      0.35        10
+           6       0.00      0.00      0.00         5
+           7       0.38      0.75      0.50         4
+
+    accuracy                           0.60        90
+   macro avg       0.45      0.51      0.47        90
+weighted avg       0.56      0.60      0.57        90
+
+
+Test Set Performance:
+              precision    recall  f1-score   support
+
+           1       0.88      0.88      0.88        16
+           2       0.71      0.76      0.74        33
+           4       0.39      0.43      0.41        21
+           5       0.00      0.00      0.00        10
+           6       0.00      0.00      0.00         5
+           7       0.30      0.60      0.40         5
+
+    accuracy                           0.57        90
+   macro avg       0.38      0.44      0.40        90
+weighted avg       0.53      0.57      0.54        90
+
+
+Confusion Matrix:
+[[14  2  0  0  0  0]
+ [ 2 25  5  0  0  1]
+ [ 0  8  9  3  0  1]
+ [ 0  0  7  0  0  3]
+ [ 0  0  2  1  0  2]
+ [ 0  0  0  2  0  3]]
+
+Final Cross-validation Scores:
+Mean: 0.465 (+/- 0.133)
+

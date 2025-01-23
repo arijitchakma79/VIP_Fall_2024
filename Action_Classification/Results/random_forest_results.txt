@@ -1,0 +1,62 @@
+Random Forest Classification Results
+==================================================
+
+Dataset Sizes:
+Training set: 269 samples
+Validation set: 90 samples
+Test set: 90 samples
+
+Grid Search Parameters:
+n_estimators: [100, 200, 300]
+max_depth: [5, 10, 15, None]
+min_samples_split: [2, 5, 10]
+min_samples_leaf: [1, 2, 4]
+max_features: ['sqrt', 'log2']
+
+Best Model Results:
+Best parameters: {'max_depth': 10, 'max_features': 'sqrt', 'min_samples_leaf': 2, 'min_samples_split': 2, 'n_estimators': 200}
+Best cross-validation score: 0.447
+
+Feature Importance:
+queue1: 0.5005
+queue2: 0.4995
+
+Validation Set Performance:
+              precision    recall  f1-score   support
+
+           1       0.88      0.88      0.88        16
+           2       0.74      0.68      0.71        34
+           4       0.56      0.67      0.61        21
+           5       0.56      0.50      0.53        10
+           6       0.80      0.80      0.80         5
+           7       0.50      0.50      0.50         4
+
+    accuracy                           0.69        90
+   macro avg       0.67      0.67      0.67        90
+weighted avg       0.69      0.69      0.69        90
+
+
+Test Set Performance:
+              precision    recall  f1-score   support
+
+           1       0.93      0.88      0.90        16
+           2       0.72      0.79      0.75        33
+           4       0.56      0.43      0.49        21
+           5       0.33      0.30      0.32        10
+           6       0.29      0.40      0.33         5
+           7       0.29      0.40      0.33         5
+
+    accuracy                           0.62        90
+   macro avg       0.52      0.53      0.52        90
+weighted avg       0.63      0.62      0.62        90
+
+
+Confusion Matrix:
+[[14  2  0  0  0  0]
+ [ 1 26  3  0  3  0]
+ [ 0  6  9  2  2  2]
+ [ 0  2  3  3  0  2]
+ [ 0  0  1  1  2  1]
+ [ 0  0  0  3  0  2]]
+
+ROC AUC Score (One-vs-Rest): 0.880
