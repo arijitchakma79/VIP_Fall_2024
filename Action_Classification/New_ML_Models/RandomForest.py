@@ -9,22 +9,27 @@ from datetime import datetime
 
 # Read data
 print("Loading dataset...")
-data = pd.read_csv('paste.txt')
+data = pd.read_csv('filtered_output.csv')
 print(f"Dataset loaded: {data.shape[0]} rows, {data.shape[1]} columns.")
 
-# Prepare features and target
 X = data[['queue1', 'queue2']]
 y = data['action']
 print("Features and target selected.")
 
 # Create results file
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_file = f'random_forest_results_{timestamp}.txt'
+results_file = "random_forest_results.txt"
 print(f"Results will be saved to: {results_file}")
 
 with open(results_file, 'w') as f:
-    f.write("Random Forest Classification Results\n")
-    f.write("="*50 + "\n\n")
+    def write_line(text=""):
+        """Write a line to the TXT file and flush immediately."""
+        f.write(text + "\n")
+        f.flush()  # Ensures writing is done line by line
+
+    # Writing the title
+    write_line("Random Forest Classification Results")
+    write_line("=" * 50)
+    write_line()
 
     # Data Splitting
     print("Splitting dataset...")
@@ -36,6 +41,12 @@ with open(results_file, 'w') as f:
     )
     print(f"Data split completed: Training={len(X_train)}, Validation={len(X_val)}, Test={len(X_test)}")
 
+    write_line("Dataset Sizes:")
+    write_line(f"Training set: {len(X_train)} samples")
+    write_line(f"Validation set: {len(X_val)} samples")
+    write_line(f"Test set: {len(X_test)} samples")
+    write_line()
+
     # Grid Search Parameters
     print("Initializing Grid Search...")
     param_grid = {
@@ -45,10 +56,14 @@ with open(results_file, 'w') as f:
         'min_samples_leaf': [1, 2, 4],
         'max_features': ['sqrt', 'log2']
     }
-    
-    print("Grid Search parameters defined.")
 
-    # Grid Search
+    write_line("Grid Search Parameters:")
+    for key, values in param_grid.items():
+        write_line(f"{key}: {values}")
+    write_line()
+
+    # Fit Grid Search
+    print("Fitting Grid Search...")
     rf = RandomForestClassifier(random_state=42)
     grid_search = GridSearchCV(
         rf,
@@ -59,43 +74,57 @@ with open(results_file, 'w') as f:
         verbose=1,
         return_train_score=True
     )
-
-    print("Fitting Grid Search (this may take time)...")
     grid_search.fit(X_train, y_train)
     print("Grid Search completed!")
 
     # Best Model Selection
     best_model = grid_search.best_estimator_
-    print(f"Best parameters: {grid_search.best_params_}")
+    write_line("Best Model Results:")
+    write_line(f"Best parameters: {grid_search.best_params_}")
+    write_line(f"Best cross-validation score: {grid_search.best_score_:.3f}")
+    write_line()
 
     # Feature Importance
-    print("Extracting feature importance...")
     feature_importances = best_model.feature_importances_
+    write_line("Feature Importance:")
+    for feat, imp in zip(['queue1', 'queue2'], feature_importances):
+        write_line(f"{feat}: {imp:.4f}")
+    write_line()
 
     # Model Validation
     print("Validating model on validation set...")
     val_predictions = best_model.predict(X_val)
     print("Validation completed.")
 
+    write_line("Validation Set Performance:")
+    write_line(classification_report(y_val, val_predictions))
+    write_line()
+
     # Model Evaluation on Test Set
     print("Evaluating model on test set...")
     test_predictions = best_model.predict(X_test)
     print("Test evaluation completed.")
 
+    write_line("Test Set Performance:")
+    write_line(classification_report(y_test, test_predictions))
+    write_line()
+
     # Confusion Matrix
     print("Computing confusion matrix...")
     cm = confusion_matrix(y_test, test_predictions)
+    write_line("Confusion Matrix:")
+    write_line(str(cm))
 
     # Additional Metrics
     print("Computing ROC AUC score...")
     y_proba = best_model.predict_proba(X_test)
     roc_auc = roc_auc_score(y_test, y_proba, multi_class='ovr')
+    write_line(f"\nROC AUC Score (One-vs-Rest): {roc_auc:.3f}")
 
-print(f"Results have been saved to: {results_file}")
+print(f"TXT Report saved: {results_file}")
 
-# Create visualizations
+# Also create visualizations
 print("Generating visualizations...")
-
 plt.figure(figsize=(20, 5))
 
 # Confusion Matrix
@@ -109,7 +138,7 @@ plt.ylabel('True')
 plt.subplot(1, 3, 2)
 importances = pd.DataFrame({
     'feature': ['Queue1', 'Queue2'],
-    'importance': best_model.feature_importances_
+    'importance': feature_importances
 })
 sns.barplot(x='feature', y='importance', data=importances)
 plt.title('Feature Importance')

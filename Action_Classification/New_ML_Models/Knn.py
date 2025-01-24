@@ -1,59 +1,65 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_score, train_test_split, StratifiedKFold, GridSearchCV
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, classification_report, confusion_matrix
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
 
-
-
-data = pd.read_csv('../Files/filtered_output.csv')
-
+# Read data
+print("Loading dataset...")
+data = pd.read_csv('./filtered_output.csv')
+print(f"Dataset loaded: {data.shape[0]} rows, {data.shape[1]} columns.")
 
 X = data[['queue1', 'queue2']]
 y = data['action']
 
-# Create a results file with timestamp
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_file = f'knn_results_{timestamp}.txt'
-
+# Create results file
+results_file = "knn_results.txt"
+print(f"Results will be saved to: {results_file}")
 
 with open(results_file, 'w') as f:
-    # Write initial information
-    f.write("KNN Classification Results\n")
-    f.write("="*50 + "\n\n")
-    
+    def write_line(text=""):
+        """Write a line to the TXT file and flush immediately."""
+        f.write(text + "\n")
+        f.flush()  # Ensures writing is done line by line
+
+    # Writing the title
+    write_line("KNN Classification Results")
+    write_line("=" * 50)
+    write_line()
+
     # 1. Data Splitting
-    X_temp, X_test, y_temp, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
-    
-    X_train, X_val, y_train, y_val = train_test_split(
-        X_temp, y_temp, test_size=0.25, random_state=42, stratify=y_temp
-    )
-    
-    # Write dataset sizes
-    f.write("Dataset Sizes:\n")
-    f.write(f"Training set: {len(X_train)} samples\n")
-    f.write(f"Validation set: {len(X_val)} samples\n")
-    f.write(f"Test set: {len(X_test)} samples\n\n")
-    
+    print("Splitting dataset...")
+    X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.25, random_state=42, stratify=y_temp)
+    print(f"Data split completed: Training={len(X_train)}, Validation={len(X_val)}, Test={len(X_test)}")
+
+    write_line("Dataset Sizes:")
+    write_line(f"Training set: {len(X_train)} samples")
+    write_line(f"Validation set: {len(X_val)} samples")
+    write_line(f"Test set: {len(X_test)} samples")
+    write_line()
+
     # 2. Cross-Validation Setup
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    
+
     # 3. Grid Search
+    print("Initializing Grid Search...")
     param_grid = {
         'n_neighbors': [3, 5, 7, 9, 11, 13, 15],
         'weights': ['uniform', 'distance'],
         'metric': ['euclidean', 'manhattan']
     }
-    
-    f.write("Grid Search Parameters:\n")
-    f.write(str(param_grid) + "\n\n")
-    
+
+    write_line("Grid Search Parameters:")
+    for key, values in param_grid.items():
+        write_line(f"{key}: {values}")
+    write_line()
+
+    # Fit Grid Search
+    print("Fitting Grid Search...")
     knn = KNeighborsClassifier()
     grid_search = GridSearchCV(
         knn,
@@ -64,61 +70,54 @@ with open(results_file, 'w') as f:
         verbose=1,
         return_train_score=True
     )
-    
-    # Fit grid search
     grid_search.fit(X_train, y_train)
-    
-    # Write all results from grid search
-    f.write("Grid Search Results:\n")
-    f.write("-"*50 + "\n")
-    results = pd.DataFrame(grid_search.cv_results_)
-    
-    # Sort results by mean test score
-    results = results.sort_values('mean_test_score', ascending=False)
-    
-    for idx, row in results.iterrows():
-        params = row['params']
-        f.write(f"\nParameters: {params}\n")
-        f.write(f"Mean CV Score: {row['mean_test_score']:.3f} (+/- {row['std_test_score']*2:.3f})\n")
-        f.write(f"Mean Train Score: {row['mean_train_score']:.3f}\n")
-    
-    f.write("\n" + "="*50 + "\n")
-    f.write("Best Model Results:\n")
-    f.write(f"Best parameters: {grid_search.best_params_}\n")
-    f.write(f"Best cross-validation score: {grid_search.best_score_:.3f}\n\n")
-    
-    # 4. Best Model Validation
+    print("Grid Search completed!")
+
+    # Best Model Selection
     best_model = grid_search.best_estimator_
+    write_line("Best Model Results:")
+    write_line(f"Best parameters: {grid_search.best_params_}")
+    write_line(f"Best cross-validation score: {grid_search.best_score_:.3f}")
+    write_line()
+
+    # 4. Best Model Validation
+    print("Validating model on validation set...")
     val_predictions = best_model.predict(X_val)
-    
-    f.write("Validation Set Performance:\n")
-    f.write(classification_report(y_val, val_predictions))
-    f.write("\n")
-    
+    print("Validation completed.")
+
+    write_line("Validation Set Performance:")
+    write_line(classification_report(y_val, val_predictions))
+    write_line()
+
     # 5. Final Model Evaluation
+    print("Evaluating model on test set...")
     test_predictions = best_model.predict(X_test)
-    
-    f.write("Test Set Performance:\n")
-    f.write(classification_report(y_test, test_predictions))
-    
-    # Write confusion matrix
-    f.write("\nConfusion Matrix:\n")
+    print("Test evaluation completed.")
+
+    write_line("Test Set Performance:")
+    write_line(classification_report(y_test, test_predictions))
+    write_line()
+
+    # Confusion Matrix
+    print("Computing confusion matrix...")
     cm = confusion_matrix(y_test, test_predictions)
-    f.write(str(cm))
-    
+    write_line("Confusion Matrix:")
+    write_line(str(cm))
+
     # Additional metrics
     y_proba = best_model.predict_proba(X_test)
     roc_auc = roc_auc_score(y_test, y_proba, multi_class='ovr')
-    f.write(f"\n\nROC AUC Score (One-vs-Rest): {roc_auc:.3f}\n")
-    
+    write_line(f"\nROC AUC Score (One-vs-Rest): {roc_auc:.3f}")
+
     # Cross-validation scores
     cv_scores = cross_val_score(best_model, X_train, y_train, cv=cv, scoring='f1_macro')
-    f.write("\nFinal Cross-validation Scores:\n")
-    f.write(f"Mean: {cv_scores.mean():.3f} (+/- {cv_scores.std() * 2:.3f})\n")
+    write_line("\nFinal Cross-validation Scores:")
+    write_line(f"Mean: {cv_scores.mean():.3f} (+/- {cv_scores.std() * 2:.3f})\n")
 
-print(f"Results have been saved to: {results_file}")
+print(f"TXT Report saved: {results_file}")
 
 # Also create visualizations
+print("Generating visualizations...")
 plt.figure(figsize=(15, 5))
 
 # Confusion Matrix
@@ -147,3 +146,6 @@ plt.ylabel('Queue 2')
 
 plt.tight_layout()
 plt.show()
+print("Visualization completed.")
+
+print("All processes completed successfully!")

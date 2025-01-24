@@ -1,0 +1,58 @@
+SVM Classification Results
+==================================================
+
+Dataset Sizes:
+Training set: 269 samples
+Validation set: 90 samples
+Test set: 90 samples
+
+Grid Search Parameters:
+C: [0.1, 1, 10, 100]
+kernel: ['rbf', 'linear']
+gamma: ['scale', 'auto', 0.1, 0.01]
+
+Best Model Results:
+Best parameters: {'C': 1, 'gamma': 'scale', 'kernel': 'linear'}
+Best cross-validation score: 0.471
+
+Validation Set Performance:
+              precision    recall  f1-score   support
+
+           1       0.87      0.81      0.84        16
+           2       0.64      0.79      0.71        34
+           4       0.37      0.33      0.35        21
+           5       0.50      0.20      0.29        10
+           6       0.00      0.00      0.00         5
+           7       0.40      1.00      0.57         4
+
+    accuracy                           0.59        90
+   macro avg       0.46      0.52      0.46        90
+weighted avg       0.56      0.59      0.56        90
+
+
+Test Set Performance:
+              precision    recall  f1-score   support
+
+           1       0.88      0.88      0.88        16
+           2       0.68      0.79      0.73        33
+           4       0.35      0.43      0.38        21
+           5       0.00      0.00      0.00        10
+           6       0.00      0.00      0.00         5
+           7       0.38      0.60      0.46         5
+
+    accuracy                           0.58        90
+   macro avg       0.38      0.45      0.41        90
+weighted avg       0.51      0.58      0.54        90
+
+
+Confusion Matrix:
+[[14  2  0  0  0  0]
+ [ 2 26  5  0  0  0]
+ [ 0 10  9  0  0  2]
+ [ 0  0  7  0  0  3]
+ [ 0  0  4  1  0  0]
+ [ 0  0  1  1  0  3]]
+
+Final Cross-validation Scores:
+Mean: 0.471 (+/- 0.131)
+

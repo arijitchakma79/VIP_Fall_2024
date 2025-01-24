@@ -9,7 +9,7 @@ from datetime import datetime
 
 # Read data
 print("Loading dataset...")
-data = pd.read_csv('../Files/combined.csv')
+data = pd.read_csv('filtered_output.csv')
 print(f"Dataset loaded: {data.shape[0]} rows, {data.shape[1]} columns.")
 
 # Prepare features and target
@@ -18,19 +18,31 @@ y = data['action']
 print("Features and target selected.")
 
 # Create results file
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-results_file = f'logistic_regression_results_{timestamp}.txt'
+results_file = "logistic_regression_results.txt"
 print(f"Results will be saved to: {results_file}")
 
 with open(results_file, 'w') as f:
-    f.write("Logistic Regression Classification Results\n")
-    f.write("="*50 + "\n\n")
+    def write_line(text=""):
+        """Write a line to the TXT file and flush immediately."""
+        f.write(text + "\n")
+        f.flush()  # Ensures writing is done line by line
+
+    # Writing the title
+    write_line("Logistic Regression Classification Results")
+    write_line("=" * 50)
+    write_line()
 
     # Data Splitting
     print("Splitting dataset...")
     X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.25, random_state=42, stratify=y_temp)
     print(f"Data split completed: Training={len(X_train)}, Validation={len(X_val)}, Test={len(X_test)}")
+
+    write_line("Dataset Sizes:")
+    write_line(f"Training set: {len(X_train)} samples")
+    write_line(f"Validation set: {len(X_val)} samples")
+    write_line(f"Test set: {len(X_test)} samples")
+    write_line()
 
     # Cross-Validation Setup
     print("Setting up cross-validation...")
@@ -45,10 +57,14 @@ with open(results_file, 'w') as f:
         'max_iter': [1000],
         'multi_class': ['ovr', 'auto']
     }
-    
-    print("Grid Search parameters defined.")
 
-    # Grid Search
+    write_line("Grid Search Parameters:")
+    for key, values in param_grid.items():
+        write_line(f"{key}: {values}")
+    write_line()
+
+    # Fit Grid Search
+    print("Fitting Grid Search...")
     lr = LogisticRegression()
     grid_search = GridSearchCV(
         lr,
@@ -59,39 +75,50 @@ with open(results_file, 'w') as f:
         verbose=1,
         return_train_score=True
     )
-
-    print("Fitting Grid Search (this may take time)...")
     grid_search.fit(X_train, y_train)
     print("Grid Search completed!")
 
     # Best Model Selection
     best_model = grid_search.best_estimator_
-    print(f"Best parameters: {grid_search.best_params_}")
+    write_line("Best Model Results:")
+    write_line(f"Best parameters: {grid_search.best_params_}")
+    write_line(f"Best cross-validation score: {grid_search.best_score_:.3f}")
+    write_line()
 
     # Model Validation
     print("Validating model on validation set...")
     val_predictions = best_model.predict(X_val)
     print("Validation completed.")
 
+    write_line("Validation Set Performance:")
+    write_line(classification_report(y_val, val_predictions))
+    write_line()
+
     # Model Evaluation on Test Set
     print("Evaluating model on test set...")
     test_predictions = best_model.predict(X_test)
     print("Test evaluation completed.")
 
+    write_line("Test Set Performance:")
+    write_line(classification_report(y_test, test_predictions))
+    write_line()
+
     # Confusion Matrix
     print("Computing confusion matrix...")
     cm = confusion_matrix(y_test, test_predictions)
+    write_line("Confusion Matrix:")
+    write_line(str(cm))
 
     # Cross-validation scores
     print("Performing cross-validation on final model...")
     cv_scores = cross_val_score(best_model, X_train, y_train, cv=cv, scoring='f1_macro')
-    print(f"Cross-validation completed. Mean score: {cv_scores.mean():.3f}")
+    write_line("\nFinal Cross-validation Scores:")
+    write_line(f"Mean: {cv_scores.mean():.3f} (+/- {cv_scores.std() * 2:.3f})\n")
 
-print(f"Results have been saved to: {results_file}")
+print(f"TXT Report saved: {results_file}")
 
-# Create visualizations
+# Also create visualizations
 print("Generating visualizations...")
-
 plt.figure(figsize=(15, 5))
 
 # Confusion Matrix
